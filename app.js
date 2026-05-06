@@ -645,6 +645,16 @@ async function getSupabaseClient() {
   return supabaseClient;
 }
 
+async function completeAuthRedirect(client) {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  if (!code) return;
+  const { error } = await client.auth.exchangeCodeForSession(code);
+  if (error) throw error;
+  url.searchParams.delete("code");
+  window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+}
+
 async function sendMagicLink() {
   try {
     const config = saveSyncConfig(readSyncForm());
@@ -682,6 +692,7 @@ async function refreshAuthGate() {
   if (!REQUIRE_LOGIN) return;
   try {
     const client = await getSupabaseClient();
+    await completeAuthRedirect(client);
     const { data } = await client.auth.getUser();
     const signedIn = Boolean(data.user);
     els.authGate.hidden = signedIn;
