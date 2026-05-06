@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8fafc" />
+    <title>MemoTask</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <section id="authGate" class="auth-gate" hidden>
+      <div class="auth-card">
+        <div class="brand auth-brand">
+          <span class="brand-mark">M</span>
+          <span>MemoTask</span>
+        </div>
+        <h1>ログインしてメモを開く</h1>
+        <p id="authGateStatus">個人用のメモはSupabaseログイン後に表示されます。</p>
+        <label class="field">
+          <span>メールアドレス</span>
+          <input id="gateEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </label>
+        <button id="gateMagicLinkBtn" class="primary-button" type="button">ログインリンクを送信</button>
+      </div>
+    </section>
+
+    <div class="app-shell">
+      <aside class="sidebar desktop-sidebar" aria-label="ナビゲーション">
+        <div class="brand">
+          <span class="brand-mark">M</span>
+          <span>MemoTask</span>
+        </div>
+        <nav id="desktopNav" class="nav-list"></nav>
+      </aside>
+
+      <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+      <aside id="mobileDrawer" class="sidebar mobile-drawer" aria-label="モバイルメニュー" aria-hidden="true">
+        <div class="drawer-title">
+          <div class="brand">
+            <span class="brand-mark">M</span>
+            <span>MemoTask</span>
+          </div>
+          <button id="closeDrawerBtn" class="icon-button" type="button" aria-label="メニューを閉じる">×</button>
+        </div>
+        <nav id="mobileNav" class="nav-list"></nav>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button id="openDrawerBtn" class="icon-button menu-button" type="button" aria-label="メニューを開く">☰</button>
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="検索 / メモを書く" autocomplete="off" />
+          </label>
+          <button id="syncBtn" class="ghost-button" type="button">同期</button>
+          <button id="signOutBtn" class="ghost-button" type="button" hidden>ログアウト</button>
+          <button id="newNoteBtn" class="primary-button" type="button">新規</button>
+        </header>
+
+        <section id="quickComposer" class="composer" aria-label="新しいメモ">
+          <input id="quickTitle" type="text" placeholder="タイトル" />
+          <textarea id="quickContent" rows="2" placeholder="すぐメモを書く"></textarea>
+          <div class="composer-actions">
+            <button id="quickTaskBtn" class="ghost-button" type="button">□ タスク行を追加</button>
+            <button id="quickSaveBtn" class="primary-button" type="button">追加</button>
+          </div>
+        </section>
+
+        <section class="view-heading">
+          <div>
+            <p id="viewKicker" class="kicker">すべてのメモ</p>
+            <h1 id="viewTitle">メモ</h1>
+          </div>
+          <p id="viewMeta" class="view-meta"></p>
+        </section>
+
+        <section id="taskView" class="task-view" hidden></section>
+        <section id="notesGrid" class="notes-grid" aria-live="polite"></section>
+        <section id="emptyState" class="empty-state" hidden>
+          <h2>まだ何もありません</h2>
+          <p>上の入力欄から、思いついたことをそのまま残せます。</p>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="noteDialog" class="note-dialog">
+      <form method="dialog" class="note-editor" id="noteForm">
+        <div class="dialog-header">
+          <input id="editorTitle" class="editor-title" type="text" placeholder="タイトル" />
+          <button class="icon-button" type="submit" aria-label="閉じる">×</button>
+        </div>
+
+        <textarea id="editorContent" class="editor-content" placeholder="メモ本文"></textarea>
+
+        <div class="editor-section">
+          <div class="section-title">
+            <span>チェックリスト</span>
+            <button id="addTaskBtn" class="ghost-button" type="button">□ 追加</button>
+          </div>
+          <div id="taskEditorList" class="task-editor-list"></div>
+        </div>
+
+        <div class="editor-section">
+          <div class="section-title">
+            <span>ラベル</span>
+            <button id="createLabelBtn" class="ghost-button" type="button">＋ 作成</button>
+          </div>
+          <div id="labelPicker" class="label-picker"></div>
+        </div>
+
+        <div class="editor-section">
+          <span class="section-title-text">色</span>
+          <div id="colorPicker" class="color-picker"></div>
+        </div>
+
+        <div class="editor-actions">
+          <button id="pinBtn" class="ghost-button" type="button">ピン留め</button>
+          <button id="archiveBtn" class="ghost-button" type="button">アーカイブ</button>
+          <button id="trashBtn" class="danger-button" type="button">ゴミ箱へ</button>
+          <button class="primary-button" type="submit">完了</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="syncDialog" class="sync-dialog">
+      <form method="dialog" class="sync-panel" id="syncForm">
+        <div class="dialog-header">
+          <div>
+            <h2>オンライン同期</h2>
+            <p id="syncStatus">未設定</p>
+          </div>
+          <button class="icon-button" type="submit" aria-label="閉じる">×</button>
+        </div>
+
+        <label class="field">
+          <span>Supabase URL</span>
+          <input id="syncUrl" type="url" placeholder="https://example.supabase.co" autocomplete="off" />
+        </label>
+
+        <label class="field">
+          <span>Supabase publishable key</span>
+          <input id="syncAnonKey" type="password" placeholder="publishable / anon key" autocomplete="off" />
+        </label>
+
+        <label class="field">
+          <span>ログイン用メール</span>
+          <input id="syncEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </label>
+
+        <div class="sync-actions">
+          <button id="saveSyncConfigBtn" class="ghost-button" type="button">設定保存</button>
+          <button id="sendMagicLinkBtn" class="ghost-button" type="button">ログインリンク送信</button>
+          <button id="pullSyncBtn" class="ghost-button" type="button">クラウドから取得</button>
+          <button id="pushSyncBtn" class="ghost-button" type="button">クラウドへ保存</button>
+          <button id="syncNowBtn" class="primary-button" type="button">同期する</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
